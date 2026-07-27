@@ -1,0 +1,260 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>WargaNet - RT 04 Pancer</title>
+    <!-- Tailwind CSS CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- FontAwesome Icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+</head>
+<body class="bg-gray-100 font-sans text-gray-800 pb-20">
+
+    <!-- KONFIGURASI JSONBIN (Ganti dengan data Anda) -->
+    <script>
+        const JSONBIN_BIN_ID = "6a676389da38895dfe96825b";
+        const JSONBIN_SECRET_KEY = "$2a$10$QIyv.AmUFINQ/eg510GxK.RId13bJ8C1jKblNJ9KyL0t6T0iflJhu";
+        const RT_WHATSAPP = "6287880373803"; // Ganti nomor WhatsApp Pengurus RT (format 62...)
+    </script>
+
+    <!-- HEADER / NAVBAR ATAS -->
+    <header class="bg-blue-600 text-white p-4 sticky top-0 z-50 shadow-md flex justify-between items-center">
+        <div>
+            <h1 class="font-bold text-lg">RT 04 PANCER</h1>
+            <p class="text-xs text-blue-100">Sistem Layanan Warga Digital</p>
+        </div>
+        <div class="text-right text-xs">
+            <span class="block font-semibold">Ketua: Bpk. Hj. Syaeful Bahri</span>
+        </div>
+    </header>
+
+    <!-- KONTEN UTAMA -->
+    <main class="max-w-md mx-auto p-4">
+
+        <!-- MENU 1: BERANDA / STRUKTUR -->
+        <section id="menu-beranda" class="space-y-4">
+            <div class="bg-gradient-to-r from-blue-500 to-indigo-600 text-white p-5 rounded-2xl shadow-lg">
+                <h2 class="text-xl font-bold mb-1">Selamat Datang, Warga!</h2>
+                <p class="text-sm opacity-90">Portal layanan mandiri dan informasi resmi RT 04 / RW Kel. Pancer.</p>
+            </div>
+
+            <!-- Pengurus RT -->
+            <div class="bg-white p-4 rounded-xl shadow-sm border border-gray-100">
+                <h3 class="font-bold text-gray-700 mb-3 border-b pb-2"><i class="fa-solid fa-users text-blue-500 mr-2"></i>Perangkat RT 04</h3>
+                <ul class="space-y-2 text-sm">
+                    <li class="flex justify-between"><span>Ketua RT</span> <span class="font-semibold">Bpk. Hj. Syaeful Bahri</span></li>
+                    <li class="flex justify-between"><span>Sekretaris</span> <span class="font-semibold">Bpk. Ardi</span></li>
+                    <li class="flex justify-between"><span>Bendahara</span> <span class="font-semibold">Bpk. Nurchadi</span></li>
+                </ul>
+            </div>
+        </section>
+
+        <!-- MENU 2: ADUAN MASYARAKAT -->
+        <section id="menu-aduan" class="hidden space-y-4">
+            <div class="bg-white p-4 rounded-xl shadow-sm border border-gray-100">
+                <h3 class="font-bold text-gray-700 mb-3"><i class="fa-solid fa-bullhorn text-red-500 mr-2"></i>Lapor Aduan Warga</h3>
+                <form id="form-aduan" onsubmit="kirimAduan(event)" class="space-y-3">
+                    <div>
+                        <label class="block text-xs font-semibold text-gray-600 mb-1">Nama Pelapor</label>
+                        <input type="text" id="aduan-nama" required class="w-full p-2 border rounded-lg text-sm focus:ring-2 focus:ring-blue-500 outline-none">
+                    </div>
+                    <div>
+                        <label class="block text-xs font-semibold text-gray-600 mb-1">Isi Aduan / Masalah</label>
+                        <textarea id="aduan-pesan" rows="3" required class="w-full p-2 border rounded-lg text-sm focus:ring-2 focus:ring-blue-500 outline-none" placeholder="Contoh: Lampu jalan mati di RT..."></textarea>
+                    </div>
+                    <button type="submit" class="w-full bg-red-500 text-white py-2 rounded-lg font-semibold text-sm hover:bg-red-600 transition">Kirim Aduan (Otomatis ke WhatsApp & Database)</button>
+                </form>
+            </div>
+        </section>
+
+        <!-- MENU 3: KEGIATAN WARGA -->
+        <section id="menu-kegiatan" class="hidden space-y-4">
+            <div class="bg-white p-4 rounded-xl shadow-sm border border-gray-100">
+                <h3 class="font-bold text-gray-700 mb-3"><i class="fa-solid fa-camera text-green-500 mr-2"></i>Dokumentasi Kegiatan</h3>
+                <form id="form-kegiatan" onsubmit="tambahKegiatan(event)" class="space-y-3">
+                    <div>
+                        <label class="block text-xs font-semibold text-gray-600 mb-1">Nama Kegiatan</label>
+                        <input type="text" id="kegiatan-nama" required class="w-full p-2 border rounded-lg text-sm">
+                    </div>
+                    <div>
+                        <label class="block text-xs font-semibold text-gray-600 mb-1">Upload Foto (File Perangkat)</label>
+                        <input type="file" id="kegiatan-file" accept="image/*" required class="w-full p-1 border rounded-lg text-sm bg-gray-50">
+                    </div>
+                    <button type="submit" class="w-full bg-green-600 text-white py-2 rounded-lg font-semibold text-sm hover:bg-green-700 transition">Simpan Kegiatan</button>
+                </form>
+            </div>
+            <!-- Daftar Kegiatan -->
+            <div id="list-kegiatan" class="space-y-3">
+                <!-- Data dimuat via JS -->
+            </div>
+        </section>
+
+        <!-- MENU 4: AJUAN SURAT -->
+        <section id="menu-surat" class="hidden space-y-4">
+            <div class="bg-white p-4 rounded-xl shadow-sm border border-gray-100">
+                <h3 class="font-bold text-gray-700 mb-3"><i class="fa-solid fa-file-lines text-indigo-500 mr-2"></i>Form Ajuan Surat</h3>
+                <form id="form-surat" onsubmit="kirimSurat(event)" class="space-y-3">
+                    <div>
+                        <label class="block text-xs font-semibold text-gray-600 mb-1">Jenis Surat</label>
+                        <select id="surat-jenis" class="w-full p-2 border rounded-lg text-sm bg-white">
+                            <option value="Surat Pengantar Domisili">Surat Pengantar Domisili</option>
+                            <option value="Surat Keterangan Tidak Mampu">Surat Keterangan Tidak Mampu (SKTM)</option>
+                            <option value="Surat Pengantar Nikah">Surat Pengantar Nikah</option>
+                            <option value="Surat Keterangan Usaha">Surat Keterangan Usaha</option>
+                            <option value="Surat Pengurusan KTP & KK">Surat Pengurusan KTP & KK</option>
+                        </select>
+                    </div>
+                    <div>
+                        <label class="block text-xs font-semibold text-gray-600 mb-1">Nama Lengkap</label>
+                        <input type="text" id="surat-nama" required class="w-full p-2 border rounded-lg text-sm" placeholder="Tanpa NIK">
+                    </div>
+                    <div>
+                        <label class="block text-xs font-semibold text-gray-600 mb-1">Alamat</label>
+                        <textarea id="surat-alamat" rows="2" required class="w-full p-2 border rounded-lg text-sm" placeholder="Alamat rumah warga"></textarea>
+                    </div>
+                    <button type="submit" class="w-full bg-blue-600 text-white py-2 rounded-lg font-semibold text-sm hover:bg-blue-700 transition">Kirim Ajuan (WhatsApp & Database)</button>
+                </form>
+            </div>
+        </section>
+
+    </main>
+
+    <!-- BOTTOM NAVBAR (MENU BAWAH) -->
+    <nav class="fixed bottom-0 left-0 right-0 bg-white border-t border-gray-200 flex justify-around p-2 shadow-lg max-w-md mx-auto z-50">
+        <button onclick="gantiMenu('beranda')" id="nav-beranda" class="flex flex-col items-center text-blue-600 text-xs">
+            <i class="fa-solid fa-house text-lg mb-1"><span>Beranda</span></i>
+        </button>
+        <button onclick="gantiMenu('aduan')" id="nav-aduan" class="flex flex-col items-center text-gray-400 text-xs">
+            <i class="fa-solid fa-bullhorn text-lg mb-1"><span>Aduan</span></i>
+        </button>
+        <button onclick="gantiMenu('kegiatan')" id="nav-kegiatan" class="flex flex-col items-center text-gray-400 text-xs">
+            <i class="fa-solid fa-camera text-lg mb-1"><span>Kegiatan</span></i>
+        </button>
+        <button onclick="gantiMenu('surat')" id="nav-surat" class="flex flex-col items-center text-gray-400 text-xs">
+            <i class="fa-solid fa-file-lines text-lg mb-1"><span>Surat</span></i>
+        </button>
+    </nav>
+
+    <!-- JAVASCRIPT LOGIC & JSONBIN API -->
+    <script>
+        function gantiMenu(menu) {
+            ['beranda', 'aduan', 'kegiatan', 'surat'].forEach(m => {
+                document.getElementById(`menu-${m}`).classList.add('hidden');
+                document.getElementById(`nav-${m}`).classList.remove('text-blue-600');
+                document.getElementById(`nav-${m}`).classList.add('text-gray-400');
+            });
+            document.getElementById(`menu-${menu}`).classList.remove('hidden');
+            document.getElementById(`nav-${menu}`).classList.remove('text-gray-400');
+            document.getElementById(`nav-${menu}`).classList.add('text-blue-600');
+            if(menu === 'kegiatan') muatDataKegiatan();
+        }
+
+        // Fungsi Ambil Data dari JSONBin
+        async function getDataJSONBin() {
+            try {
+                let res = await fetch(`https://api.jsonbin.io/v3/b/${JSONBIN_BIN_ID}/latest`, {
+                    headers: { 'X-Master-Key': JSONBIN_SECRET_KEY }
+                });
+                let json = await res.json();
+                return json.record;
+            } catch (err) {
+                console.error("Gagal ambil data", err);
+                return { aduan: [], kegiatan: [], surat: [] };
+            }
+        }
+
+        // Fungsi Simpan Data ke JSONBin
+        async function saveDataJSONBin(data) {
+            try {
+                let res = await fetch(`https://api.jsonbin.io/v3/b/${JSONBIN_BIN_ID}`, {
+                    method: 'PUT',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'X-Master-Key': JSONBIN_SECRET_KEY
+                    },
+                    body: JSON.stringify(data)
+                });
+                return await res.json();
+            } catch (err) {
+                console.error("Gagal simpan data", err);
+            }
+        }
+
+        // 1. Aduan Masyarakat (Kirim WA Otomatis + Simpan DB)
+        async function kirimAduan(e) {
+            e.preventDefault();
+            let nama = document.getElementById('aduan-nama').value;
+            let pesan = document.getElementById('aduan-pesan').value;
+
+            let dataDB = await getDataJSONBin();
+            dataDB.aduan.push({ nama, pesan, tanggal: new Date().toLocaleString() });
+            await saveDataJSONBin(dataDB);
+
+            let waText = `*ADUAN WARGA RT 04 PANCER*%0A%0ANama: ${nama}%0AIsi Aduan: ${pesan}`;
+            window.open(`https://wa.me/${RT_WHATSAPP}?text=${waText}`, '_blank');
+            alert('Aduan berhasil dikirim ke WhatsApp RT dan tersimpan di database!');
+            document.getElementById('form-aduan').reset();
+        }
+
+        // 2. Kegiatan Warga (Upload Foto File Perangkat + Base64 ke DB)
+        async function tambahKegiatan(e) {
+            e.preventDefault();
+            let namaKegiatan = document.getElementById('kegiatan-nama').value;
+            let fileInput = document.getElementById('kegiatan-file');
+
+            let reader = new FileReader();
+            reader.readAsDataURL(fileInput.files[0]);
+            reader.onload = async function () {
+                let base64Image = reader.result;
+
+                let dataDB = await getDataJSONBin();
+                dataDB.kegiatan.push({ nama: namaKegiatan, foto: base64Image, tanggal: new Date().toLocaleDateString() });
+                await saveDataJSONBin(dataDB);
+
+                alert('Kegiatan dan foto berhasil disimpan permanen ke database!');
+                document.getElementById('form-kegiatan').reset();
+                muatDataKegiatan();
+            };
+        }
+
+        async function muatDataKegiatan() {
+            let dataDB = await getDataJSONBin();
+            let container = document.getElementById('list-kegiatan');
+            container.innerHTML = '<h4- font-semibold text-xs text-gray-500 mb-2">Riwayat Kegiatan</h4>';
+            
+            if(!dataDB.kegiatan || dataDB.kegiatan.length === 0) {
+                container.innerHTML += '<p class="text-xs text-gray-400">Belum ada kegiatan.</p>';
+                return;
+            }
+
+            dataDB.kegiatan.reverse().forEach(item => {
+                container.innerHTML += `
+                    <div class="bg-white p-3 rounded-xl shadow-sm border border-gray-100 space-y-2">
+                        <img src="${item.foto}" class="w-full h-40 object-cover rounded-lg">
+                        <h4 class="font-bold text-sm">${item.nama}</h4>
+                        <p class="text-xs text-gray-400">${item.tanggal}</p>
+                    </div>
+                `;
+            });
+        }
+
+        // 3. Ajuan Surat (Tanpa NIK, Nama & Alamat + Koneksi WA)
+        async function kirimSurat(e) {
+            e.preventDefault();
+            let jenis = document.getElementById('surat-jenis').value;
+            let nama = document.getElementById('surat-nama').value;
+            let alamat = document.getElementById('surat-alamat').value;
+
+            let dataDB = await getDataJSONBin();
+            dataDB.surat.push({ jenis, nama, alamat, tanggal: new Date().toLocaleString() });
+            await saveDataJSONBin(dataDB);
+
+            let waText = `*PENGAJUAN SURAT PENGANTAR RT 04*%0A%0AJenis: ${jenis}%0ANama: ${nama}%0AAlamat: ${alamat}`;
+            window.open(`https://wa.me/${RT_WHATSAPP}?text=${waText}`, '_blank');
+            alert('Ajuan surat berhasil diproses ke WhatsApp Pengurus dan tersimpan di database!');
+            document.getElementById('form-surat').reset();
+        }
+    </script>
+</body>
+</html>
