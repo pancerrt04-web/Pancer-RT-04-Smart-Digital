@@ -1,0 +1,390 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>RT 04 Pancer - Portal Warga</title>
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Alpine.js -->
+    <script defer src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js"></script>
+    <!-- FontAwesome -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        body { background-color: #f8fafc; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; }
+    </style>
+</head>
+<body x-data="rtApp()" class="pb-20 max-w-md mx-auto relative min-h-screen shadow-2xl bg-white">
+
+    <!-- HEADER -->
+    <header class="bg-blue-600 text-white p-4 sticky top-0 z-50 shadow-md flex justify-between items-center">
+        <div>
+            <h1 class="font-bold text-lg">RT 04 / RW Pancer</h1>
+            <p class="text-xs text-blue-100">Kecamatan Ciampea, Bogor</p>
+        </div>
+        <div class="bg-blue-500 p-2 rounded-full text-sm">
+            <i class="fa-solid fa-users"></i>
+        </div>
+    </header>
+
+    <!-- MAIN CONTENT CONTAINER -->
+    <main class="p-4">
+
+        <!-- 1. MENU BERANDA -->
+        <section x-show="currentTab === 'beranda'" class="space-y-4">
+            <div class="bg-gradient-to-r from-blue-500 to-indigo-600 text-white p-4 rounded-2xl shadow">
+                <h2 class="text-xl font-bold mb-1">Selamat Datang, Warga!</h2>
+                <p class="text-sm text-blue-100">Portal layanan digital RT 04 Pancer yang cepat, transparan, dan terpadu.</p>
+            </div>
+
+            <!-- Quick Menu Grid -->
+            <div class="grid grid-cols-3 gap-3">
+                <button @click="currentTab = 'aduan'" class="bg-red-50 p-3 rounded-xl text-center border border-red-100 flex flex-col items-center justify-center">
+                    <div class="bg-red-500 text-white p-3 rounded-full mb-1 shadow"><i class="fa-solid fa-bullhorn"></i></div>
+                    <span class="text-xs font-semibold text-gray-700">Aduan</span>
+                </button>
+                <button @click="currentTab = 'surat'" class="bg-blue-50 p-3 rounded-xl text-center border border-blue-100 flex flex-col items-center justify-center">
+                    <div class="bg-blue-500 text-white p-3 rounded-full mb-1 shadow"><i class="fa-solid fa-envelope-open-text"></i></div>
+                    <span class="text-xs font-semibold text-gray-700">Ajuan Surat</span>
+                </button>
+                <button @click="currentTab = 'kegiatan'" class="bg-green-50 p-3 rounded-xl text-center border border-green-100 flex flex-col items-center justify-center">
+                    <div class="bg-green-500 text-white p-3 rounded-full mb-1 shadow"><i class="fa-solid fa-camera"></i></div>
+                    <span class="text-xs font-semibold text-gray-700">Kegiatan</span>
+                </button>
+            </div>
+
+            <!-- Informasi Pengumuman Terbaru -->
+            <div class="bg-amber-50 border border-amber-200 p-4 rounded-xl">
+                <h3 class="font-bold text-amber-800 text-sm mb-1"><i class="fa-solid fa-circle-info mr-1"></i> Pengumuman RT</h3>
+                <p class="text-xs text-amber-700 leading-relaxed">Kerja bakti pembersihan saluran air lingkungan RT 04 akan dilaksanakan pada hari Minggu pukul 07:00 WIB. Mohon partisipasi warga.</p>
+            </div>
+
+            <!-- Feed Kegiatan Ringkas -->
+            <div>
+                <h3 class="font-bold text-gray-800 text-sm mb-2">Kegiatan Terbaru</h3>
+                <template x-for="item in kegiatanList.slice(0, 2)" :key="item.id">
+                    <div class="bg-white border rounded-xl p-3 mb-2 shadow-sm">
+                        <img :src="item.foto" class="w-full h-36 object-cover rounded-lg mb-2" alt="Foto Kegiatan">
+                        <p class="text-xs text-gray-500 mb-1"><i class="fa-regular fa-calendar"></i> <span x-text="item.tanggal"></span></p>
+                        <p class="text-sm font-semibold text-gray-800" x-text="item.judul"></p>
+                        <p class="text-xs text-gray-600 mt-1" x-text="item.deskripsi"></p>
+                    </div>
+                </template>
+            </div>
+        </section>
+
+        <!-- 2. MENU ADUAN MASYARAKAT -->
+        <section x-show="currentTab === 'aduan'" class="space-y-4">
+            <div class="border-b pb-2">
+                <h2 class="font-bold text-lg text-gray-800"><i class="fa-solid fa-bullhorn text-red-500 mr-2"></i>Laporan & Aduan Warga</h2>
+                <p class="text-xs text-gray-500">Sampaikan keluhan atau laporan lingkungan ke Pengurus RT.</p>
+            </div>
+
+            <form @submit.prevent="submitAduan" class="space-y-3">
+                <div>
+                    <label class="block text-xs font-semibold text-gray-700 mb-1">Nama Pelapor</label>
+                    <input type="text" x-model="aduanForm.nama" required class="w-full text-sm border rounded-lg p-2.5 focus:ring-2 focus:ring-blue-500 outline-none" placeholder="Nama lengkap warga">
+                </div>
+                <div>
+                    <label class="block text-xs font-semibold text-gray-700 mb-1">Nomor WhatsApp</label>
+                    <input type="tel" x-model="aduanForm.whatsapp" required class="w-full text-sm border rounded-lg p-2.5 focus:ring-2 focus:ring-blue-500 outline-none" placeholder="Contoh: 08123456789">
+                </div>
+                <div>
+                    <label class="block text-xs font-semibold text-gray-700 mb-1">Isi Aduan / Laporan</label>
+                    <textarea x-model="aduanForm.pesan" rows="4" required class="w-full text-sm border rounded-lg p-2.5 focus:ring-2 focus:ring-blue-500 outline-none" placeholder="Jelaskan aduan atau masalah di lingkungan RT..."></textarea>
+                </div>
+                <button type="submit" :disabled="loading" class="w-full bg-red-600 text-white font-semibold py-2.5 rounded-lg text-sm shadow hover:bg-red-700 transition">
+                    <span x-show="!loading">Kirim Aduan & WhatsApp</span>
+                    <span x-show="loading">Menyimpan & Mengirim...</span>
+                </button>
+            </form>
+        </section>
+
+        <!-- 3. MENU KEGIATAN & UPLOAD FOTO -->
+        <section x-show="currentTab === 'kegiatan'" class="space-y-4">
+            <div class="border-b pb-2 flex justify-between items-center">
+                <div>
+                    <h2 class="font-bold text-lg text-gray-800"><i class="fa-solid fa-camera text-green-500 mr-2"></i>Dokumentasi Kegiatan</h2>
+                    <p class="text-xs text-gray-500">Galeri foto aktivitas warga RT 04 Pancer.</p>
+                </div>
+                <button @click="showUploadModal = true" class="bg-green-600 text-white text-xs px-3 py-2 rounded-lg font-semibold shadow hover:bg-green-700">
+                    <i class="fa-solid fa-plus mr-1"></i> Upload
+                </button>
+            </div>
+
+            <!-- List Kegiatan -->
+            <div class="space-y-3">
+                <template x-for="item in kegiatanList" :key="item.id">
+                    <div class="bg-white border rounded-xl p-3 shadow-sm">
+                        <img :src="item.foto" class="w-full h-44 object-cover rounded-lg mb-2" alt="Foto">
+                        <div class="flex justify-between items-center text-xs text-gray-500 mb-1">
+                            <span><i class="fa-regular fa-calendar"></i> <span x-text="item.tanggal"></span></span>
+                            <span class="bg-green-100 text-green-800 px-2 py-0.5 rounded font-medium" x-text="item.kategori"></span>
+                        </div>
+                        <h4 class="font-bold text-sm text-gray-800" x-text="item.judul"></h4>
+                        <p class="text-xs text-gray-600 mt-1 leading-relaxed" x-text="item.deskripsi"></p>
+                    </div>
+                </template>
+                <div x-show="kegiatanList.length === 0" class="text-center py-8 text-gray-400 text-xs">
+                    Belum ada dokumentasi kegiatan yang diunggah.
+                </div>
+            </div>
+        </section>
+
+        <!-- 4. MENU AJUAN SURAT -->
+        <section x-show="currentTab === 'surat'" class="space-y-4">
+            <div class="border-b pb-2">
+                <h2 class="font-bold text-lg text-gray-800"><i class="fa-solid fa-envelope-open-text text-blue-500 mr-2"></i>Layanan Surat Pengantar</h2>
+                <p class="text-xs text-gray-500">Ajukan surat kebutuhan administrasi kependudukan online.</p>
+            </div>
+
+            <form @submit.prevent="submitSurat" class="space-y-3">
+                <div>
+                    <label class="block text-xs font-semibold text-gray-700 mb-1">Jenis Surat</label>
+                    <select x-model="suratForm.jenis" required class="w-full text-sm border rounded-lg p-2.5 bg-white focus:ring-2 focus:ring-blue-500 outline-none">
+                        <option value="">Pilih Jenis Surat</option>
+                        <option value="Surat Pengantar Domisili">Surat Pengantar Domisili</option>
+                        <option value="Surat Keterangan Tidak Mampu (SKTM)">Surat Keterangan Tidak Mampu (SKTM)</option>
+                        <option value="Surat Pengantar Nikah">Surat Pengantar Nikah</option>
+                        <option value="Surat Keterangan Usaha">Surat Keterangan Usaha</option>
+                        <option value="Surat Pengurusan KTP & KK">Surat Pengurusan KTP & KK</option>
+                    </select>
+                </div>
+                <div>
+                    <label class="block text-xs font-semibold text-gray-700 mb-1">Nama Lengkap</label>
+                    <input type="text" x-model="suratForm.nama" required class="w-full text-sm border rounded-lg p-2.5 focus:ring-2 focus:ring-blue-500 outline-none" placeholder="Sesuai KTP">
+                </div>
+                <div>
+                    <label class="block text-xs font-semibold text-gray-700 mb-1">NIK (Nomor Induk Kependudukan)</label>
+                    <input type="text" x-model="suratForm.nik" required class="w-full text-sm border rounded-lg p-2.5 focus:ring-2 focus:ring-blue-500 outline-none" placeholder="16 digit NIK">
+                </div>
+                <div>
+                    <label class="block text-xs font-semibold text-gray-700 mb-1">Keperluan Pembuatan Surat</label>
+                    <textarea x-model="suratForm.keperluan" rows="3" required class="w-full text-sm border rounded-lg p-2.5 focus:ring-2 focus:ring-blue-500 outline-none" placeholder="Contoh: Untuk syarat pendaftaran kerja..."></textarea>
+                </div>
+                <button type="submit" :disabled="loading" class="w-full bg-blue-600 text-white font-semibold py-2.5 rounded-lg text-sm shadow hover:bg-blue-700 transition">
+                    <span x-show="!loading">Kirim Ajuan Surat</span>
+                    <span x-show="loading">Menyimpan ke Database...</span>
+                </button>
+            </form>
+        </section>
+
+        <!-- 5. MENU PROFIL RT -->
+        <section x-show="currentTab === 'profil'" class="space-y-4">
+            <div class="text-center py-4 bg-gray-50 rounded-2xl border">
+                <div class="bg-blue-600 text-white w-16 h-16 rounded-full flex items-center justify-center text-2xl mx-auto mb-2 shadow">
+                    <i class="fa-solid fa-house-chimney"></i>
+                </div>
+                <h2 class="font-bold text-lg text-gray-800">RT 04 / RW Pancer</h2>
+                <p class="text-xs text-gray-500">Kelurahan/Desa Ciampea, Bogor, Jawa Barat</p>
+            </div>
+
+            <div class="bg-white border rounded-xl p-4 shadow-sm space-y-3">
+                <h3 class="font-bold text-sm text-gray-800 border-b pb-1">Susunan Pengurus RT</h3>
+                <div class="text-xs space-y-2">
+                    <div class="flex justify-between"><span class="text-gray-500">Ketua RT:</span> <span class="font-semibold text-gray-800">Bapak Ahmad</span></div>
+                    <div class="flex justify-between"><span class="text-gray-500">Sekretaris:</span> <span class="font-semibold text-gray-800">Bapak Rian</span></div>
+                    <div class="flex justify-between"><span class="text-gray-500">Bendahara:</span> <span class="font-semibold text-gray-800">Bapak Rudi</span></div>
+                </div>
+            </div>
+        </section>
+
+    </main>
+
+    <!-- MODAL UPLOAD KEGIATAN -->
+    <div x-show="showUploadModal" class="fixed inset-0 bg-black bg-opacity-50 z-50 flex items-center justify-center p-4">
+        <div class="bg-white rounded-2xl p-4 w-full max-w-sm space-y-3 shadow-xl">
+            <div class="flex justify-between items-center border-b pb-2">
+                <h3 class="font-bold text-sm text-gray-800">Upload Foto Kegiatan</h3>
+                <button @click="showUploadModal = false" class="text-gray-400 hover:text-gray-600"><i class="fa-solid fa-xmark text-lg"></i></button>
+            </div>
+            <form @submit.prevent="submitKegiatan" class="space-y-3">
+                <div>
+                    <label class="block text-xs font-semibold text-gray-700 mb-1">Judul Kegiatan</label>
+                    <input type="text" x-model="kegiatanForm.judul" required class="w-full text-sm border rounded-lg p-2.5 outline-none">
+                </div>
+                <div>
+                    <label class="block text-xs font-semibold text-gray-700 mb-1">Kategori</label>
+                    <input type="text" x-model="kegiatanForm.kategori" required class="w-full text-sm border rounded-lg p-2.5 outline-none" placeholder="Kerja Bakti / Rapat / Posyandu">
+                </div>
+                <div>
+                    <label class="block text-xs font-semibold text-gray-700 mb-1">Pilih Foto (File Perangkat)</label>
+                    <input type="file" @change="handleFileSelect" accept="image/*" required class="w-full text-xs border rounded-lg p-2 file:mr-2 file:py-1 file:px-3 file:rounded-lg file:border-0 file:text-xs file:font-semibold file:bg-blue-50 file:text-blue-700">
+                </div>
+                <div>
+                    <label class="block text-xs font-semibold text-gray-700 mb-1">Deskripsi Singkat</label>
+                    <textarea x-model="kegiatanForm.deskripsi" rows="2" required class="w-full text-sm border rounded-lg p-2.5 outline-none"></textarea>
+                </div>
+                <button type="submit" :disabled="loading" class="w-full bg-green-600 text-white font-semibold py-2.5 rounded-lg text-sm shadow hover:bg-green-700">
+                    <span x-show="!loading">Simpan & Upload</span>
+                    <span x-show="loading">Mengunggah...</span>
+                </button>
+            </form>
+        </div>
+    </div>
+
+    <!-- BOTTOM NAVIGATION BAR -->
+    <nav class="fixed bottom-0 left-0 right-0 max-w-md mx-auto bg-white border-t border-gray-200 flex justify-around py-2 z-40 shadow-lg">
+        <button @click="currentTab = 'beranda'" :class="currentTab === 'beranda' ? 'text-blue-600' : 'text-gray-400'" class="flex flex-col items-center text-xs">
+            <i class="fa-solid fa-house text-lg mb-0.5"></i> Beranda
+        </button>
+        <button @click="currentTab = 'kegiatan'" :class="currentTab === 'kegiatan' ? 'text-blue-600' : 'text-gray-400'" class="flex flex-col items-center text-xs">
+            <i class="fa-solid fa-camera text-lg mb-0.5"></i> Kegiatan
+        </button>
+        <button @click="currentTab = 'aduan'" :class="currentTab === 'aduan' ? 'text-blue-600' : 'text-gray-400'" class="flex flex-col items-center text-xs">
+            <i class="fa-solid fa-bullhorn text-lg mb-0.5"></i> Aduan
+        </button>
+        <button @click="currentTab = 'surat'" :class="currentTab === 'surat' ? 'text-blue-600' : 'text-gray-400'" class="flex flex-col items-center text-xs">
+            <i class="fa-solid fa-envelope text-lg mb-0.5"></i> Surat
+        </button>
+        <button @click="currentTab = 'profil'" :class="currentTab === 'profil' ? 'text-blue-600' : 'text-gray-400'" class="flex flex-col items-center text-xs">
+            <i class="fa-solid fa-user-gear text-lg mb-0.5"></i> Profil
+        </button>
+    </nav>
+
+    <!-- JAVASCRIPT & LOGIC -->
+    <script>
+        // Konfigurasi JSONBin.io (Ganti dengan Master Key dan Bin ID Anda)
+        const JSONBIN_BIN_ID = '6a675127da38895dfe96267c'; 
+        const JSONBIN_MASTER_KEY = '$2a$10$Vo6e2mC2PRYwsaZvIezpaeI1xr4jYyw3yCWzbLPkssKURFZ2Bu3vG';
+
+        function rtApp() {
+            return {
+                currentTab: 'beranda',
+                loading: false,
+                showUploadModal: false,
+                
+                // State Data Utama
+                kegiatanList: [],
+                aduanList: [],
+                suratList: [],
+
+                // Form States
+                aduanForm: { nama: '', whatsapp: '', pesan: '' },
+                suratForm: { jenis: '', nama: '', nik: '', keperluan: '' },
+                kegiatanForm: { judul: '', kategori: '', deskripsi: '', foto: '' },
+
+                init() {
+                    this.fetchDataFromJSONBin();
+                },
+
+                // Ambil Data dari JSONBin
+                async fetchDataFromJSONBin() {
+                    try {
+                        let response = await fetch(`https://api.jsonbin.io/v3/b/${JSONBIN_BIN_ID}/latest`, {
+                            headers: { 'X-Master-Key': JSONBIN_MASTER_KEY }
+                        });
+                        let result = await response.json();
+                        if (result && result.record) {
+                            this.kegiatanList = result.record.kegiatan || [];
+                            this.aduanList = result.record.aduan || [];
+                            this.suratList = result.record.surat || [];
+                        }
+                    } catch (error) {
+                        console.error('Gagal memuat data:', error);
+                    }
+                },
+
+                // Simpan Data ke JSONBin
+                async saveAllDataToJSONBin() {
+                    let payload = {
+                        kegiatan: this.kegiatanList,
+                        aduan: this.aduanList,
+                        surat: this.suratList
+                    };
+
+                    await fetch(`https://api.jsonbin.io/v3/b/${JSONBIN_BIN_ID}`, {
+                        method: 'PUT',
+                        headers: {
+                            'Content-Type': 'application/json',
+                            'X-Master-Key': JSONBIN_MASTER_KEY
+                        },
+                        body: JSON.stringify(payload)
+                    });
+                },
+
+                // Handle Upload File Gambar ke Base64
+                handleFileSelect(event) {
+                    const file = event.target.files[0];
+                    if (file) {
+                        const reader = new FileReader();
+                        reader.onload = (e) => {
+                            this.kegiatanForm.foto = e.target.result;
+                        };
+                        reader.readAsDataURL(file);
+                    }
+                },
+
+                // Submit Kegiatan
+                async submitKegiatan() {
+                    this.loading = true;
+                    let newKegiatan = {
+                        id: Date.now(),
+                        judul: this.kegiatanForm.judul,
+                        kategori: this.kegiatanForm.kategori,
+                        deskripsi: this.kegiatanForm.deskripsi,
+                        foto: this.kegiatanForm.foto,
+                        tanggal: new Date().toLocaleDateString('id-ID', { day: 'numeric', month: 'long', year: 'numeric' })
+                    };
+
+                    this.kegiatanList.unshift(newKegiatan);
+                    await this.saveAllDataToJSONBin();
+
+                    this.loading = false;
+                    this.showUploadModal = false;
+                    this.kegiatanForm = { judul: '', kategori: '', deskripsi: '', foto: '' };
+                    alert('Kegiatan berhasil diunggah dan disimpan ke database!');
+                },
+
+                // Submit Aduan & Kirim WhatsApp Otomatis
+                async submitAduan() {
+                    this.loading = true;
+                    let newAduan = {
+                        id: Date.now(),
+                        nama: this.aduanForm.nama,
+                        whatsapp: this.aduanForm.whatsapp,
+                        pesan: this.aduanForm.pesan,
+                        tanggal: new Date().toLocaleString('id-ID')
+                    };
+
+                    this.aduanList.unshift(newAduan);
+                    await this.saveAllDataToJSONBin();
+
+                    this.loading = false;
+
+                    // Format Pesan WhatsApp Otomatis ke Pengurus RT (Ganti nomor tujuan di bawah)
+                    let rtWhatsAppNumber = "6287880373803"; 
+                    let waText = `*ADUAN WARGA RT 04 PANCER*%0A%0A*Nama:* ${this.aduanForm.nama}%0A*No WA:* ${this.aduanForm.whatsapp}%0A*Isi Aduan:* ${this.aduanForm.pesan}`;
+
+                    // Reset form & Buka WhatsApp
+                    this.aduanForm = { nama: '', whatsapp: '', pesan: '' };
+                    alert('Aduan berhasil disimpan ke database! Anda akan diarahkan ke WhatsApp.');
+                    window.open(`https://wa.me/${rtWhatsAppNumber}?text=${waText}`, '_blank');
+                },
+
+                // Submit Ajuan Surat
+                async submitSurat() {
+                    this.loading = true;
+                    let newSurat = {
+                        id: Date.now(),
+                        jenis: this.suratForm.jenis,
+                        nama: this.suratForm.nama,
+                        nik: this.suratForm.nik,
+                        keperluan: this.suratForm.keperluan,
+                        status: 'Menunggu Konfirmasi',
+                        tanggal: new Date().toLocaleDateString('id-ID')
+                    };
+
+                    this.suratList.unshift(newSurat);
+                    await this.saveAllDataToJSONBin();
+
+                    this.loading = false;
+                    this.suratForm = { jenis: '', nama: '', nik: '', keperluan: '' };
+                    alert('Ajuan surat berhasil dikirim dan tersimpan di database RT!');
+                    this.currentTab = 'beranda';
+                }
+            }
+        }
+    </script>
+</body>
+</html>
